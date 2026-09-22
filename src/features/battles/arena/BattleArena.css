@@ -1,0 +1,20 @@
+.battle-arena {
+    margin-top: var(--space-6);
+}
+
+.battle-arena__viewport {
+    overflow-x: auto;
+    width: 100%;
+}
+
+.battle-arena__canvas {
+    display: block;
+    image-rendering: pixelated;
+    margin-inline: auto;
+}
+
+.battle-arena__controls {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-4);
+}
