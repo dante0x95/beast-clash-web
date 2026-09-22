@@ -1,15 +1,29 @@
+import { useState } from "react";
 import { Link } from "react-router";
 
+import { ConfirmDialog } from "../../shared/ConfirmDialog";
 import { Pagination } from "../../shared/Pagination";
 import { usePageParam } from "../../shared/use-page-param";
 import { MonsterCard } from "./MonsterCard";
-import { MONSTERS_PAGE_SIZE, useMonsters } from "./monsters.api";
+import {
+  type Monster,
+  MONSTERS_PAGE_SIZE,
+  useDeleteMonster,
+  useMonsters,
+} from "./monsters.api";
 
 import "./MonsterList.css";
 
 export function MonsterList() {
   const [page, setPage] = usePageParam();
   const { data, error, isPending } = useMonsters(page);
+  const deleteMonster = useDeleteMonster();
+  const [monsterToDelete, setMonsterToDelete] = useState<Monster | null>(null);
+
+  const closeDeleteDialog = (): void => {
+    setMonsterToDelete(null);
+    deleteMonster.reset();
+  };
 
   if (isPending) {
     return (
@@ -20,10 +34,7 @@ export function MonsterList() {
   }
   if (error) {
     return (
-      <p
-        className="status-message"
-        role="alert"
-      >
+      <p className="status-message" role="alert">
         {`Could not load monsters: ${error.message}`}
       </p>
     );
@@ -56,13 +67,25 @@ export function MonsterList() {
           <li key={monster.id}>
             <MonsterCard
               actions={(
-                <Link
-                  aria-label={`Edit ${monster.name}`}
-                  className="monster-card__action"
-                  to={`/monsters/${monster.id}/edit`}
-                >
-                  ✎ Edit
-                </Link>
+                <>
+                  <Link
+                    aria-label={`Edit ${monster.name}`}
+                    className="monster-card__action"
+                    to={`/monsters/${monster.id}/edit`}
+                  >
+                    ✎ Edit
+                  </Link>
+                  <button
+                    aria-label={`Delete ${monster.name}`}
+                    className="monster-card__action monster-card__action--danger"
+                    onClick={() => {
+                      setMonsterToDelete(monster);
+                    }}
+                    type="button"
+                  >
+                    ✖ Delete
+                  </button>
+                </>
               )}
               monster={monster}
             />
@@ -76,6 +99,31 @@ export function MonsterList() {
         pageSize={MONSTERS_PAGE_SIZE}
         total={data.total}
       />
+      {monsterToDelete && (
+        <ConfirmDialog
+          confirmLabel="Delete"
+          error={
+            deleteMonster.error
+              ? `Could not delete: ${deleteMonster.error.message}`
+              : null
+          }
+          isPending={deleteMonster.isPending}
+          onCancel={closeDeleteDialog}
+          onConfirm={() => {
+            deleteMonster.mutate(monsterToDelete.id, {
+              onSuccess: closeDeleteDialog,
+            });
+          }}
+          title="Delete monster?"
+        >
+          <p>
+            <strong>{monsterToDelete.name}</strong>
+            {
+              " will be removed from the list. Past battles keep their record of it."
+            }
+          </p>
+        </ConfirmDialog>
+      )}
     </>
   );
 }

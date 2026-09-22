@@ -192,3 +192,21 @@ img {
   font-size: 0.875rem;
   color: var(--color-danger);
 }
+
+.button--secondary {
+  color: var(--color-text);
+  background: var(--color-surface-raised);
+}
+
+.button--secondary:hover:not(:disabled) {
+  background: var(--color-border);
+}
+
+.button--danger {
+  color: #000;
+  background: var(--color-danger);
+}
+
+.button--danger:hover:not(:disabled) {
+  background: #ff7a93;
+}

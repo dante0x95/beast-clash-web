@@ -45,3 +45,13 @@
 .monster-card__action:hover {
     color: var(--color-accent);
 }
+button.monster-card__action {
+    padding: 0;
+    cursor: pointer;
+    background: none;
+    border: 0;
+}
+
+.monster-card__action--danger:hover {
+    color: var(--color-danger);
+}

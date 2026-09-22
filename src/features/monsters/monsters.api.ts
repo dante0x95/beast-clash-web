@@ -100,3 +100,23 @@ export function useUpdateMonster(id: string) {
     },
   });
 }
+
+export function useDeleteMonster() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error, response } = await api.DELETE("/monsters/{id}", {
+        params: { path: { id } },
+      });
+      // 404: already deleted (e.g. from another tab); the goal is met, so it is not an error
+      if (error !== undefined && response.status !== 404) {
+        throw new ApiError(response.status, error);
+      }
+    },
+    onSuccess: async (_data, id) => {
+      queryClient.removeQueries({ queryKey: monsterKeys.detail(id) });
+      await queryClient.invalidateQueries({ queryKey: monsterKeys.lists() });
+    },
+  });
+}
