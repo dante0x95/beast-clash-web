@@ -1,0 +1,7 @@
+.battle-list {
+    display: grid;
+    gap: var(--space-4);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}

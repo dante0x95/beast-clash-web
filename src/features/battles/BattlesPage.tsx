@@ -1,5 +1,7 @@
 import { Link } from "react-router";
 
+import { BattleList } from "./history/BattleList";
+
 import "../monsters/MonstersPage.css";
 
 export function BattlesPage() {
@@ -11,7 +13,7 @@ export function BattlesPage() {
           + New battle
         </Link>
       </header>
-      <p>Battle history coming soon.</p>
+      <BattleList />
     </section>
   );
 }

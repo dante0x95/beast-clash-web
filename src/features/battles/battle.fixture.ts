@@ -1,4 +1,9 @@
-import type { Battle, BattleParticipant, BattleTurn } from "./battle.types";
+import type {
+  Battle,
+  BattleParticipant,
+  BattleSummary,
+  BattleTurn,
+} from "./battle.types";
 
 export const EMBERCLAW_ID = "01900000-0000-7000-8000-00000000000a";
 export const VOLTWING_ID = "01900000-0000-7000-8000-00000000000b";
@@ -83,4 +88,12 @@ export function makeBattle(overrides: Partial<Battle> = {}): Battle {
     winnerId: EMBERCLAW_ID,
     ...overrides,
   };
+}
+
+export function makeBattleSummary(
+  overrides: Partial<BattleSummary> = {},
+): BattleSummary {
+  const { turns: _turns, ...summary } = makeBattle();
+
+  return { ...summary, ...overrides };
 }

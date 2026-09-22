@@ -50,6 +50,11 @@ describe("CharacterSelectPage", () => {
 
   it("is reachable from the battles page", async () => {
     const user = userEvent.setup();
+    // the battles page loads the history first; the monsters mock covers the select screen
+    getMock.mockResolvedValueOnce({
+      data: { items: [], page: 1, pageSize: 10, total: 0 },
+      response: new Response(null, { status: 200 }),
+    } as GetResult);
     renderRoute("/battles");
 
     await user.click(screen.getByRole("link", { name: "+ New battle" }));
