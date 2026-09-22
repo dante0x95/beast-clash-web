@@ -1,13 +1,27 @@
+import { useState } from "react";
+
+import { ConfirmDialog } from "../../../shared/ConfirmDialog";
 import { Pagination } from "../../../shared/Pagination";
 import { usePageParam } from "../../../shared/use-page-param";
-import { BATTLES_PAGE_SIZE, useBattles } from "../battles.api";
+import { BATTLES_PAGE_SIZE, useBattles, useDeleteBattle } from "../battles.api";
 import { BattleHistoryCard } from "./BattleHistoryCard";
+
+import type { BattleSummary } from "../battle.types";
 
 import "./BattleList.css";
 
 export function BattleList() {
   const [page, setPage] = usePageParam();
   const { data, error, isPending } = useBattles(page);
+  const deleteBattle = useDeleteBattle();
+  const [battleToDelete, setBattleToDelete] = useState<BattleSummary | null>(
+    null,
+  );
+
+  const closeDeleteDialog = (): void => {
+    setBattleToDelete(null);
+    deleteBattle.reset();
+  };
 
   if (isPending) {
     return (
@@ -49,7 +63,21 @@ export function BattleList() {
       <ul className="battle-list">
         {data.items.map((battle) => (
           <li key={battle.id}>
-            <BattleHistoryCard battle={battle} />
+            <BattleHistoryCard
+              actions={(
+                <button
+                  aria-label={`Delete ${battle.monsterA.name} vs ${battle.monsterB.name}`}
+                  className="battle-history-card__action battle-history-card__action--danger"
+                  onClick={() => {
+                    setBattleToDelete(battle);
+                  }}
+                  type="button"
+                >
+                  ✖ Delete
+                </button>
+              )}
+              battle={battle}
+            />
           </li>
         ))}
       </ul>
@@ -60,6 +88,31 @@ export function BattleList() {
         pageSize={BATTLES_PAGE_SIZE}
         total={data.total}
       />
+      {battleToDelete && (
+        <ConfirmDialog
+          confirmLabel="Delete"
+          error={
+            deleteBattle.error
+              ? `Could not delete: ${deleteBattle.error.message}`
+              : null
+          }
+          isPending={deleteBattle.isPending}
+          onCancel={closeDeleteDialog}
+          onConfirm={() => {
+            deleteBattle.mutate(battleToDelete.id, {
+              onSuccess: closeDeleteDialog,
+            });
+          }}
+          title="Delete battle?"
+        >
+          <p>
+            <strong>{`${battleToDelete.monsterA.name} vs ${battleToDelete.monsterB.name}`}</strong>
+            {
+              " will be permanently removed from the history. This cannot be undone."
+            }
+          </p>
+        </ConfirmDialog>
+      )}
     </>
   );
 }

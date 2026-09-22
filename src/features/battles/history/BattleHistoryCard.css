@@ -117,3 +117,14 @@
         text-align: left;
     }
 }
+
+button.battle-history-card__action {
+    padding: 0;
+    cursor: pointer;
+    background: none;
+    border: 0;
+}
+
+.battle-history-card__action--danger:hover {
+    color: var(--color-danger);
+}
