@@ -2,6 +2,7 @@ import { Navigate, type RouteObject } from "react-router";
 
 import { BattlesPage } from "../features/battles/BattlesPage";
 import { MonsterCreatePage } from "../features/monsters/MonsterCreatePage.tsx";
+import { MonsterEditPage } from "../features/monsters/MonsterEditPage.tsx";
 import { MonstersPage } from "../features/monsters/MonstersPage";
 import { AppLayout } from "./AppLayout";
 import { NotFoundPage } from "./NotFoundPage";
@@ -16,6 +17,7 @@ export const routes: RouteObject[] = [
           { element: <Navigate replace to="/monsters" />, index: true },
           { element: <MonstersPage />, path: "monsters" },
           { element: <MonsterCreatePage />, path: "monsters/new" },
+          { element: <MonsterEditPage />, path: "monsters/:monsterId/edit" },
           { element: <BattlesPage />, path: "battles" },
           {
             // lazy: the replay will pull in Pixi, which should not weigh on the rest of the app

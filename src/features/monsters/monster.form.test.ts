@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { ApiError } from "../../api/api-error";
 import {
+  diffMonster,
   type MonsterFormValues,
   toFieldErrors,
   toFormValues,
@@ -145,6 +146,36 @@ describe("toFormValues", () => {
       imageUrl: "https://x.test/a.png",
       name: "Emberclaw",
       speed: "60",
+    });
+  });
+});
+
+describe("diffMonster", () => {
+  const original = {
+    attack: 45,
+    defense: 20,
+    hp: 120,
+    imageUrl: "https://x.test/a.png",
+    name: "Emberclaw",
+    speed: 60,
+  };
+
+  it("returns only the fields that changed", () => {
+    expect(
+      diffMonster(original, { ...original, hp: 150, name: "Emberclaw II" }),
+    ).toEqual({
+      hp: 150,
+      name: "Emberclaw II",
+    });
+  });
+
+  it("returns an empty object when nothing changed", () => {
+    expect(diffMonster(original, { ...original })).toEqual({});
+  });
+
+  it("detects a change to 0", () => {
+    expect(diffMonster(original, { ...original, attack: 0 })).toEqual({
+      attack: 0,
     });
   });
 });

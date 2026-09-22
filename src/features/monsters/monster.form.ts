@@ -106,3 +106,20 @@ export function toFormValues(monster: CreateMonsterRequest): MonsterFormValues {
     speed: String(monster.speed),
   };
 }
+
+export type UpdateMonsterRequest
+  = components["schemas"]["UpdateMonsterRequest"];
+
+export function diffMonster(
+  original: CreateMonsterRequest,
+  next: CreateMonsterRequest,
+): UpdateMonsterRequest {
+  const changes: UpdateMonsterRequest = {};
+  if (next.name !== original.name) changes.name = next.name;
+  if (next.hp !== original.hp) changes.hp = next.hp;
+  if (next.attack !== original.attack) changes.attack = next.attack;
+  if (next.defense !== original.defense) changes.defense = next.defense;
+  if (next.speed !== original.speed) changes.speed = next.speed;
+  if (next.imageUrl !== original.imageUrl) changes.imageUrl = next.imageUrl;
+  return changes;
+}

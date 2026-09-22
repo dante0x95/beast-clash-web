@@ -1,3 +1,5 @@
+import { Link } from "react-router";
+
 import { Pagination } from "../../shared/Pagination";
 import { usePageParam } from "../../shared/use-page-param";
 import { MonsterCard } from "./MonsterCard";
@@ -52,7 +54,18 @@ export function MonsterList() {
       <ul className="monster-list__grid">
         {data.items.map((monster) => (
           <li key={monster.id}>
-            <MonsterCard monster={monster} />
+            <MonsterCard
+              actions={(
+                <Link
+                  aria-label={`Edit ${monster.name}`}
+                  className="monster-card__action"
+                  to={`/monsters/${monster.id}/edit`}
+                >
+                  ✎ Edit
+                </Link>
+              )}
+              monster={monster}
+            />
           </li>
         ))}
       </ul>

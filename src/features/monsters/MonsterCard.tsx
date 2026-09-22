@@ -1,16 +1,19 @@
-import { MONSTER_LIMITS } from "./monster.limits"; ;
+import { MONSTER_LIMITS } from "./monster.limits";
 import { MonsterPortrait } from "./MonsterPortrait";
 import { StatBar } from "./StatBar";
 
 import type { Monster } from "./monsters.api";
+import type { ReactNode } from "react";
 
 import "./MonsterCard.css";
 
 interface MonsterCardProps {
+  /** Buttons or links rendered at the bottom of the card (the form preview has none). */
+  readonly actions?: ReactNode;
   readonly monster: Monster;
 }
 
-export function MonsterCard({ monster }: MonsterCardProps) {
+export function MonsterCard({ actions, monster }: MonsterCardProps) {
   return (
     <article aria-labelledby={`monster-${monster.id}`} className="monster-card">
       <MonsterPortrait name={monster.name} src={monster.imageUrl} />
@@ -47,6 +50,7 @@ export function MonsterCard({ monster }: MonsterCardProps) {
           value={monster.speed}
         />
       </div>
+      {actions && <div className="monster-card__actions">{actions}</div>}
     </article>
   );
 }
