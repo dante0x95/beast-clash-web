@@ -1,0 +1,43 @@
+.versus-preview {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: var(--space-6);
+    align-items: stretch;
+    margin-bottom: var(--space-8);
+}
+
+.versus-preview__vs {
+    align-self: center;
+    font-family: var(--font-arcade);
+    font-size: 2rem;
+    color: var(--color-text-muted);
+    text-shadow: var(--shadow-pixel);
+}
+
+.versus-preview__vs--ready {
+    color: var(--color-accent-strong);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .versus-preview__vs--ready {
+        animation: versus-pulse 0.8s steps(2) infinite;
+    }
+}
+
+@keyframes versus-pulse {
+    50% {
+        color: var(--color-accent);
+    }
+}
+
+@media (max-width: 720px) {
+    .versus-preview {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+    }
+
+    .versus-preview__vs {
+        justify-self: center;
+        font-size: 1.5rem;
+    }
+}

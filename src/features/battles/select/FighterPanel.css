@@ -1,0 +1,133 @@
+.fighter-panel {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-width: 0;
+    background: var(--color-surface);
+    border: 3px solid var(--color-border);
+    box-shadow: var(--shadow-pixel);
+}
+
+.fighter-panel--p1.fighter-panel--active {
+    border-color: var(--color-p1);
+}
+
+.fighter-panel--p2.fighter-panel--active {
+    border-color: var(--color-p2);
+}
+
+.fighter-panel__header {
+    display: flex;
+    border-bottom: 2px solid var(--color-border);
+}
+
+.fighter-panel__focus {
+    display: flex;
+    flex: 1;
+    gap: var(--space-3);
+    align-items: center;
+    padding: var(--space-3);
+    color: var(--color-text);
+    cursor: pointer;
+    background: none;
+    border: 0;
+}
+
+.fighter-panel__label {
+    font-family: var(--font-arcade);
+    font-size: 0.875rem;
+}
+
+.fighter-panel--p1 .fighter-panel__label {
+    color: var(--color-p1);
+}
+
+.fighter-panel--p2 .fighter-panel__label {
+    color: var(--color-p2);
+}
+
+.fighter-panel__cursor {
+    font-family: var(--font-arcade);
+    font-size: 0.5rem;
+    color: var(--color-accent);
+}
+
+.fighter-panel__clear {
+    padding: 0 var(--space-3);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    background: none;
+    border: 0;
+    border-left: 2px solid var(--color-border);
+}
+
+.fighter-panel__clear:hover {
+    color: var(--color-danger);
+}
+
+.fighter-panel__body {
+    display: grid;
+    gap: var(--space-3);
+    justify-items: center;
+    align-content: start;
+    padding: var(--space-4);
+}
+
+.fighter-panel__body--empty {
+    align-content: center;
+    min-height: 240px;
+}
+
+.fighter-panel__placeholder {
+    display: grid;
+    place-items: center;
+    width: 128px;
+    height: 128px;
+    font-family: var(--font-arcade);
+    font-size: 2.5rem;
+    color: var(--color-border);
+    border: 3px dashed var(--color-border);
+}
+
+.fighter-panel__name {
+    max-width: 100%;
+    overflow: hidden;
+    font-family: var(--font-arcade);
+    font-size: 0.75rem;
+    color: var(--color-accent);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fighter-panel__body--empty .fighter-panel__name {
+    color: var(--color-text-muted);
+}
+
+.fighter-panel__stats {
+    display: grid;
+    gap: var(--space-2);
+    width: 100%;
+}
+
+.fighter-panel__matchup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    font-family: var(--font-arcade);
+    font-size: 0.5rem;
+    color: var(--color-text-muted);
+    list-style: none;
+}
+
+.fighter-panel__matchup li {
+    padding: var(--space-1) var(--space-2);
+    border: 2px solid var(--color-border);
+}
+
+.fighter-panel__matchup .fighter-panel__first-strike {
+    color: #000;
+    background: var(--color-accent);
+    border-color: #000;
+}

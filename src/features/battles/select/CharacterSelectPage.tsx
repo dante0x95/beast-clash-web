@@ -4,7 +4,7 @@ import { Link } from "react-router";
 import { useMonsters } from "../../monsters/monsters.api";
 import { CharacterGrid } from "./CharacterGrid";
 import { initialSelection, selectionReducer } from "./selection";
-import { SlotBar } from "./SlotBar";
+import { VersusPreview } from "./VersusPreview";
 
 import "../../monsters/MonstersPage.css";
 
@@ -15,8 +15,8 @@ export function CharacterSelectPage() {
   const { data, error, isPending } = useMonsters(1, SELECT_PAGE_SIZE);
   const [selection, dispatch] = useReducer(selectionReducer, initialSelection);
 
-  const namesById = useMemo(
-    () => new Map(data?.items.map((monster) => [monster.id, monster.name])),
+  const monstersById = useMemo(
+    () => new Map(data?.items.map((monster) => [monster.id, monster])),
     [data],
   );
 
@@ -42,10 +42,7 @@ export function CharacterSelectPage() {
     return (
       <section>
         {header}
-        <p
-          className="status-message"
-          role="alert"
-        >
+        <p className="status-message" role="alert">
           {`Could not load monsters: ${error.message}`}
         </p>
       </section>
@@ -69,18 +66,16 @@ export function CharacterSelectPage() {
   return (
     <section>
       {header}
-      <SlotBar
+      <VersusPreview
         active={selection.active}
-        names={{
-          p1: selection.p1 ? (namesById.get(selection.p1) ?? null) : null,
-          p2: selection.p2 ? (namesById.get(selection.p2) ?? null) : null,
-        }}
         onClear={(slot) => {
           dispatch({ slot, type: "clear" });
         }}
         onFocus={(slot) => {
           dispatch({ slot, type: "focusSlot" });
         }}
+        p1={selection.p1 ? (monstersById.get(selection.p1) ?? null) : null}
+        p2={selection.p2 ? (monstersById.get(selection.p2) ?? null) : null}
       />
       <CharacterGrid
         monsters={data.items}

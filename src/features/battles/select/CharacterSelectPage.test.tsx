@@ -165,3 +165,69 @@ describe("CharacterSelectPage", () => {
     ).toBeInTheDocument();
   });
 });
+
+describe("CharacterSelectPage: versus preview", () => {
+  const emberclaw = makeMonster({
+    attack: 50,
+    defense: 10,
+    hp: 120,
+    id: "01900000-0000-7000-8000-00000000000a",
+    name: "Emberclaw",
+    speed: 60,
+  });
+  const voltwing = makeMonster({
+    attack: 45,
+    defense: 15,
+    hp: 90,
+    id: "01900000-0000-7000-8000-00000000000b",
+    name: "Voltwing",
+    speed: 80,
+  });
+
+  beforeEach(() => {
+    mockMonsters([emberclaw, voltwing]);
+  });
+
+  it("shows two empty fighter panels before any pick", async () => {
+    await renderSelect();
+
+    expect(screen.getAllByText("Select a monster")).toHaveLength(2);
+    expect(
+      screen.queryByRole("list", { name: /matchup/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the picked monster's stats in its panel", async () => {
+    const { grid, user } = await renderSelect();
+
+    await user.click(within(grid).getByRole("button", { name: "Voltwing" }));
+
+    const p1 = screen.getByRole("group", { name: "P1 fighter" });
+    expect(
+      within(p1).getByRole("img", { name: "Voltwing" }),
+    ).toBeInTheDocument();
+    expect(within(p1).getByRole("meter", { name: "Speed" })).toHaveAttribute(
+      "aria-valuenow",
+      "80",
+    );
+    expect(
+      within(screen.getByRole("group", { name: "P2 fighter" })).getByText(
+        "Select a monster",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("previews damage per hit and who strikes first once both are chosen", async () => {
+    const { grid, user } = await renderSelect();
+
+    await user.click(within(grid).getByRole("button", { name: "Emberclaw" }));
+    await user.click(within(grid).getByRole("button", { name: "Voltwing" }));
+
+    const p1Matchup = screen.getByRole("list", { name: "P1 matchup" });
+    const p2Matchup = screen.getByRole("list", { name: "P2 matchup" });
+    expect(p1Matchup).toHaveTextContent("Hits for 35");
+    expect(p1Matchup).not.toHaveTextContent("First strike");
+    expect(p2Matchup).toHaveTextContent("Hits for 35");
+    expect(p2Matchup).toHaveTextContent("First strike");
+  });
+});
