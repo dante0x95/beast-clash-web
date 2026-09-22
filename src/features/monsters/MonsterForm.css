@@ -1,0 +1,35 @@
+.monster-form {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr);
+    gap: var(--space-8);
+    align-items: start;
+}
+
+.monster-form__fields {
+    display: grid;
+    gap: var(--space-6);
+}
+
+.monster-form__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--space-4);
+}
+
+.monster-form__preview {
+    position: sticky;
+    top: var(--space-6);
+    display: grid;
+    gap: var(--space-3);
+}
+
+@media (max-width: 720px) {
+    .monster-form {
+        grid-template-columns: 1fr;
+    }
+
+    .monster-form__preview {
+        position: static;
+        grid-row: 1;
+    }
+}

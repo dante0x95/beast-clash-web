@@ -155,3 +155,40 @@ img {
 .status-message>*+* {
   margin-top: var(--space-4);
 }
+
+/* ── Forms ─────────────────────────────────────────────────── */
+.form-field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.form-label {
+  padding: 0;
+  font-family: var(--font-arcade);
+  font-size: 0.625rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.form-input {
+  width: 100%;
+  padding: var(--space-3);
+  font: inherit;
+  color: var(--color-text);
+  background: #000;
+  border: 3px solid var(--color-border);
+}
+
+.form-input:focus-visible {
+  border-color: var(--color-accent);
+  outline: none;
+}
+
+.form-input[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.form-error {
+  font-size: 0.875rem;
+  color: var(--color-danger);
+}
