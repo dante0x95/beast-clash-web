@@ -210,3 +210,9 @@ img {
 .button--danger:hover:not(:disabled) {
   background: #ff7a93;
 }
+
+/* ── Player colors ─────────────────────────────────────────── */
+:root {
+  --color-p1: #ff4d6d;
+  --color-p2: #4cc9f0;
+}

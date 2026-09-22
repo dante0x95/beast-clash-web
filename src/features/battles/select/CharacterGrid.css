@@ -1,0 +1,73 @@
+.character-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+    gap: var(--space-3);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.character-grid__tile {
+    position: relative;
+    display: grid;
+    gap: var(--space-2);
+    justify-items: center;
+    width: 100%;
+    padding: var(--space-3) var(--space-2);
+    color: var(--color-text);
+    cursor: pointer;
+    background: var(--color-surface);
+    border: 3px solid var(--color-border);
+}
+
+/* hovering previews the slot the pick will fill */
+[data-active-slot="p1"] .character-grid__tile:hover:not(:disabled) {
+    border-color: var(--color-p1);
+}
+
+[data-active-slot="p2"] .character-grid__tile:hover:not(:disabled) {
+    border-color: var(--color-p2);
+}
+
+.character-grid__tile--p1 {
+    border-color: var(--color-p1);
+    box-shadow: 0 0 0 2px var(--color-p1);
+}
+
+.character-grid__tile--p2 {
+    border-color: var(--color-p2);
+    box-shadow: 0 0 0 2px var(--color-p2);
+}
+
+.character-grid__tile:disabled {
+    cursor: not-allowed;
+}
+
+.character-grid__badge {
+    position: absolute;
+    top: calc(-1 * var(--space-2));
+    left: calc(-1 * var(--space-2));
+    z-index: 1;
+    padding: 2px var(--space-1);
+    font-family: var(--font-arcade);
+    font-size: 0.5rem;
+    color: #000;
+    border: 2px solid #000;
+}
+
+.character-grid__tile--p1 .character-grid__badge {
+    background: var(--color-p1);
+}
+
+.character-grid__tile--p2 .character-grid__badge {
+    background: var(--color-p2);
+}
+
+.character-grid__name {
+    width: 100%;
+    overflow: hidden;
+    font-family: var(--font-arcade);
+    font-size: 0.5rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
