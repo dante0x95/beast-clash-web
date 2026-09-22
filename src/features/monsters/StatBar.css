@@ -1,0 +1,27 @@
+.stat-bar {
+    display: grid;
+    grid-template-columns: 3.5ch 1fr 4ch;
+    gap: var(--space-2);
+    align-items: center;
+    font-family: var(--font-arcade);
+    font-size: 0.5rem;
+}
+
+.stat-bar__label {
+    color: var(--color-text-muted);
+}
+
+.stat-bar__track {
+    height: 8px;
+    background: #000;
+    border: 1px solid var(--color-border);
+}
+
+.stat-bar__fill {
+    height: 100%;
+}
+
+.stat-bar__value {
+    color: var(--color-text);
+    text-align: right;
+}

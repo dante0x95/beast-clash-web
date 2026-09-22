@@ -1,19 +1,25 @@
 import { NavLink, Outlet } from "react-router";
 
+import "./AppLayout.css";
+
 export function AppLayout() {
   return (
     <>
       <header className="app-header">
-        <NavLink className="app-brand" to="/">
+        <NavLink className="app-header__brand" to="/">
           Beast Clash
         </NavLink>
         <nav aria-label="Main">
-          <ul className="app-nav">
+          <ul className="app-header__nav">
             <li>
-              <NavLink to="/monsters">Monsters</NavLink>
+              <NavLink className="app-header__nav-link" to="/monsters">
+                Monsters
+              </NavLink>
             </li>
             <li>
-              <NavLink to="/battles">Battles</NavLink>
+              <NavLink className="app-header__nav-link" to="/battles">
+                Battles
+              </NavLink>
             </li>
           </ul>
         </nav>

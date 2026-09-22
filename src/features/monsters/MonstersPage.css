@@ -1,0 +1,8 @@
+.monsters-page__header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-8);
+}

@@ -1,0 +1,13 @@
+.pagination {
+    display: flex;
+    gap: var(--space-4);
+    align-items: center;
+    justify-content: center;
+    margin-top: var(--space-8);
+}
+
+.pagination__status {
+    font-family: var(--font-arcade);
+    font-size: 0.625rem;
+    color: var(--color-text-muted);
+}

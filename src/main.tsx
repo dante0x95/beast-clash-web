@@ -7,6 +7,7 @@ import { RouterProvider } from "react-router/dom";
 import { ApiError } from "./api/api-error";
 import { routes } from "./app/routes";
 
+import "@fontsource/press-start-2p/latin-400.css";
 import "./index.css";
 
 const queryClient = new QueryClient({

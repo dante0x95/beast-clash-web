@@ -10,13 +10,15 @@ type MonsterPage
 
 export type Monster = MonsterPage["items"][number];
 
+export const MONSTERS_PAGE_SIZE = 12;
+
 export const monsterKeys = {
   all: ["monsters"] as const,
   list: (page: number, pageSize: number) =>
     [...monsterKeys.all, "list", { page, pageSize }] as const,
 };
 
-export function useMonsters(page = 1, pageSize = 20) {
+export function useMonsters(page = 1, pageSize = MONSTERS_PAGE_SIZE) {
   return useQuery({
     placeholderData: keepPreviousData,
     queryFn: async ({ signal }) => {

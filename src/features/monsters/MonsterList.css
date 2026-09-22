@@ -1,0 +1,8 @@
+.monster-list__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-6);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}

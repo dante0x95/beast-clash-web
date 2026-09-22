@@ -1,0 +1,25 @@
+.monster-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    align-items: center;
+    height: 100%;
+    padding: var(--space-4);
+    background: var(--color-surface);
+    border: 3px solid var(--color-border);
+    box-shadow: var(--shadow-pixel);
+}
+
+.monster-card__name {
+    width: 100%;
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.monster-card__stats {
+    display: grid;
+    gap: var(--space-2);
+    width: 100%;
+}
