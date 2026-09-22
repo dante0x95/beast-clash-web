@@ -1,0 +1,33 @@
+import { Navigate, type RouteObject } from "react-router";
+
+import { BattlesPage } from "../features/battles/BattlesPage";
+import { MonstersPage } from "../features/monsters/MonstersPage";
+import { AppLayout } from "./AppLayout";
+import { NotFoundPage } from "./NotFoundPage";
+import { RouteErrorPage } from "./RouteErrorPage";
+
+export const routes: RouteObject[] = [
+  {
+    children: [
+      {
+        errorElement: <RouteErrorPage />,
+        children: [
+          { element: <Navigate replace to="/monsters" />, index: true },
+          { element: <MonstersPage />, path: "monsters" },
+          { element: <BattlesPage />, path: "battles" },
+          {
+            // lazy: the replay will pull in Pixi, which should not weigh on the rest of the app
+            lazy: async () => {
+              const { BattleDetailPage } = await import("../features/battles/BattleDetailPage.tsx");
+              return { Component: BattleDetailPage };
+            },
+            path: "battles/:battleId",
+          },
+          { element: <NotFoundPage />, path: "*" },
+        ],
+      },
+    ],
+    element: <AppLayout />,
+    errorElement: <RouteErrorPage />,
+  },
+];
