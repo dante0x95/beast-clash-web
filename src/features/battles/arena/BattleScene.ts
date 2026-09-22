@@ -9,11 +9,11 @@ import {
 } from "pixi.js";
 
 import { BattleHud, type BattleHudTextures } from "./BattleHud";
+import { BattleOverlay } from "./BattleOverlay";
 import { tween } from "./tween";
 
 import type { Battle, BattleTurn } from "../battle.types";
 import type { ReplayState } from "../replay/replay";
-
 export const BATTLE_HEIGHT = 270;
 export const BATTLE_WIDTH = 480;
 
@@ -45,6 +45,7 @@ export class BattleScene {
 
   private animating = false;
   private hud: BattleHud | undefined;
+  private overlay: BattleOverlay | undefined;
 
   constructor(
     private readonly battle: Battle,
@@ -62,10 +63,17 @@ export class BattleScene {
     this.hud = new BattleHud(this.battle, this.replay, this.textures);
 
     this.root.addChild(this.hud.container);
+    this.overlay = new BattleOverlay(this.ticker);
+
+    this.root.addChild(this.overlay.container);
   }
 
   update(replay: ReplayState): void {
     this.hud?.update(replay);
+  }
+
+  async playIntro(): Promise<void> {
+    await this.overlay?.playIntro();
   }
 
   async animateTurn(turn: BattleTurn, nextReplay: ReplayState): Promise<void> {
@@ -141,6 +149,14 @@ export class BattleScene {
           returnAttacker,
           this.animateKnockout(defender.container, knockoutDirection),
         ]);
+
+        await this.overlay?.playKnockout();
+        const winnerName
+          = this.battle.winnerId === this.battle.monsterA.id
+            ? this.battle.monsterA.name
+            : this.battle.monsterB.name;
+
+        await this.overlay?.playWinner(winnerName);
       } else {
         await returnAttacker;
       }

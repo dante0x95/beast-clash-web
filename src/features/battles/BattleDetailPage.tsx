@@ -17,6 +17,7 @@ export function BattleDetailPage() {
   const header = (
     <header>
       <h1>Battle</h1>
+      <p>{battleId}</p>
       <Link to="/battles">◀ Back to battles</Link>
     </header>
   );

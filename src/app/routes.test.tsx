@@ -2,6 +2,7 @@ import { screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { api } from "../api/client";
+import { makeBattle } from "../features/battles/battle.fixture";
 import { renderRoute } from "../testing/render";
 
 vi.mock("../api/client", () => ({
@@ -37,13 +38,21 @@ describe("routes", () => {
   });
 
   it("lazy loads the battle detail page with its id", async () => {
-    renderRoute("/battles/01900000-0000-7000-8000-000000000001");
+    const battle = makeBattle({
+      id: "01900000-0000-7000-8000-000000000001",
+    });
+    vi.mocked(api.GET).mockResolvedValueOnce({
+      data: battle,
+      response: new Response(null, { status: 200 }),
+    } as Awaited<ReturnType<typeof api.GET>>);
+
+    renderRoute(`/battles/${battle.id}`);
 
     expect(
       await screen.findByRole("heading", { level: 1, name: "Battle" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/01900000-0000-7000-8000-000000000001/),
+      screen.getByText(new RegExp(battle.id)),
     ).toBeInTheDocument();
   });
 

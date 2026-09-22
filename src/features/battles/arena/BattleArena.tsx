@@ -111,6 +111,13 @@ export function BattleArena({ battle }: BattleArenaProps) {
 
       scene.mount(app.stage);
       sceneRef.current = scene;
+
+      await scene.playIntro();
+
+      if (destroyed) {
+        return;
+      }
+
       setIsSceneReady(true);
 
       const updateScale = (): void => {

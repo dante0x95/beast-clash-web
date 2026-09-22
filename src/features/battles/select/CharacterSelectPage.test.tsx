@@ -266,6 +266,10 @@ describe("CharacterSelectPage: fight", () => {
     });
 
     const { grid, user } = await renderSelect();
+    getMock.mockResolvedValueOnce({
+      data: battle,
+      response: new Response(null, { status: 200 }),
+    } as GetResult);
 
     await user.click(within(grid).getByRole("button", { name: "Emberclaw" }));
     await user.click(within(grid).getByRole("button", { name: "Voltwing" }));
