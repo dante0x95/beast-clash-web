@@ -2,6 +2,7 @@ import { Application } from "pixi.js";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 
 import { createReplayState, replayReducer } from "../replay/replay";
+import { describeReplay } from "../replay/replay-announcer";
 import { BATTLE_HEIGHT, BATTLE_WIDTH, BattleScene } from "./BattleScene";
 import { loadMonsterTexture } from "./monster-texture";
 import { ReplayControls } from "./ReplayControls";
@@ -229,8 +230,12 @@ export function BattleArena({ battle }: BattleArenaProps) {
           p2: p2Texture,
         },
         app.ticker,
+        {
+          reducedMotion: window.matchMedia(
+            "(prefers-reduced-motion: reduce)",
+          ).matches,
+        },
       );
-
       scene.mount(app.stage);
       scene.setSpeed(replayRef.current.speed);
       sceneRef.current = scene;
@@ -244,7 +249,9 @@ export function BattleArena({ battle }: BattleArenaProps) {
       setIsSceneReady(true);
 
       const updateScale = (): void => {
-        const scale = Math.max(1, Math.floor(host.clientWidth / BATTLE_WIDTH));
+        const ratio = host.clientWidth / BATTLE_WIDTH;
+        // integer scale keeps pixels crisp; below 1x (phones) it shrinks to fit instead of scrolling
+        const scale = ratio >= 1 ? Math.floor(ratio) : ratio;
 
         canvas.style.width = `${String(BATTLE_WIDTH * scale)}px`;
 
@@ -310,6 +317,9 @@ export function BattleArena({ battle }: BattleArenaProps) {
         speed={replay.speed}
         status={replay.status}
       />
+      <p className="visually-hidden" role="status">
+        {describeReplay(replay)}
+      </p>
     </div>
   );
 }

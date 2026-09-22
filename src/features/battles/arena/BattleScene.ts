@@ -40,6 +40,11 @@ const damageStyle = new TextStyle({
   },
 });
 
+export interface BattleSceneOptions {
+  /** Movement snaps to its end pose; fades and HP changes stay. */
+  readonly reducedMotion: boolean;
+}
+
 interface FighterView {
   readonly container: Container;
   readonly homeX: number;
@@ -58,6 +63,7 @@ export class BattleScene {
     private readonly replay: ReplayState,
     private readonly textures: BattleHudTextures,
     private readonly ticker: Ticker,
+    private readonly options: BattleSceneOptions,
   ) {}
 
   mount(stage: Container): void {
@@ -69,7 +75,7 @@ export class BattleScene {
     this.hud = new BattleHud(this.battle, this.replay, this.textures);
 
     this.root.addChild(this.hud.container);
-    this.overlay = new BattleOverlay(this.ticker);
+    this.overlay = new BattleOverlay(this.ticker, this.options);
 
     this.root.addChild(this.overlay.container);
   }
@@ -101,13 +107,10 @@ export class BattleScene {
     const loser = this.fighters.get(this.battle.loserId);
 
     if (loser) {
-      const direction = this.knockoutDirection(this.battle.loserId);
-
-      loser.container.position.set(
-        loser.homeX + KNOCKOUT_PUSH_X * direction,
-        PLATFORM_Y + KNOCKOUT_REST_Y,
+      this.applyKnockoutPose(
+        loser,
+        this.knockoutDirection(this.battle.loserId),
       );
-      loser.container.rotation = KNOCKOUT_ROTATION * direction;
       loser.container.alpha = KNOCKOUT_ALPHA;
     }
 
@@ -134,7 +137,7 @@ export class BattleScene {
 
     try {
       await tween(this.ticker, {
-        durationMs: LUNGE_DURATION_MS,
+        durationMs: this.moveMs(LUNGE_DURATION_MS),
         from: attacker.container.x,
         onUpdate: (x) => {
           attacker.container.x = x;
@@ -171,7 +174,7 @@ export class BattleScene {
       const isKnockout = turn.defenderHpAfter === 0;
 
       const returnAttacker = tween(this.ticker, {
-        durationMs: RETURN_DURATION_MS,
+        durationMs: this.moveMs(RETURN_DURATION_MS),
         from: attacker.container.x,
         onUpdate: (x) => {
           attacker.container.x = x;
@@ -203,6 +206,19 @@ export class BattleScene {
     }
   }
 
+  /** Movement tweens take 0 ms with reduced motion: they jump to their end value on the next tick. */
+  private moveMs(durationMs: number): number {
+    return this.options.reducedMotion ? 0 : durationMs;
+  }
+
+  private applyKnockoutPose(view: FighterView, direction: -1 | 1): void {
+    view.container.position.set(
+      view.homeX + KNOCKOUT_PUSH_X * direction,
+      PLATFORM_Y + KNOCKOUT_REST_Y,
+    );
+    view.container.rotation = KNOCKOUT_ROTATION * direction;
+  }
+
   private async playResult(): Promise<void> {
     const winnerName
       = this.battle.winnerId === this.battle.monsterA.id
@@ -227,18 +243,21 @@ export class BattleScene {
   }
 
   private async animateDefenderHit(defender: Container): Promise<void> {
+    // a softer dip instead of a flash with reduced motion
+    const dimAlpha = this.options.reducedMotion ? 0.6 : 0.25;
+
     await tween(this.ticker, {
       durationMs: 45,
       from: 1,
       onUpdate: (alpha) => {
         defender.alpha = alpha;
       },
-      to: 0.25,
+      to: dimAlpha,
     });
 
     await tween(this.ticker, {
       durationMs: 75,
-      from: 0.25,
+      from: dimAlpha,
       onUpdate: (alpha) => {
         defender.alpha = alpha;
       },
@@ -255,7 +274,7 @@ export class BattleScene {
 
     await Promise.all([
       tween(this.ticker, {
-        durationMs: 120,
+        durationMs: this.moveMs(120),
         from: startX,
         onUpdate: (x) => {
           defender.x = x;
@@ -264,7 +283,7 @@ export class BattleScene {
       }),
 
       tween(this.ticker, {
-        durationMs: 120,
+        durationMs: this.moveMs(120),
         from: startY,
         onUpdate: (y) => {
           defender.y = y;
@@ -275,7 +294,7 @@ export class BattleScene {
 
     await Promise.all([
       tween(this.ticker, {
-        durationMs: 240,
+        durationMs: this.moveMs(240),
         from: defender.y,
         onUpdate: (y) => {
           defender.y = y;
@@ -284,7 +303,7 @@ export class BattleScene {
       }),
 
       tween(this.ticker, {
-        durationMs: 240,
+        durationMs: this.moveMs(240),
         from: 0,
         onUpdate: (rotation) => {
           defender.rotation = rotation;
@@ -309,7 +328,7 @@ export class BattleScene {
     try {
       await Promise.all([
         tween(this.ticker, {
-          durationMs: 280,
+          durationMs: this.moveMs(280),
           from: startY,
           onUpdate: (y) => {
             text.y = y;

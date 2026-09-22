@@ -1,12 +1,18 @@
 .app-header {
+    background: var(--color-surface);
+    border-bottom: 4px solid #000;
+}
+
+/* same width and side padding as .app-main, so the brand lines up with the page content */
+.app-header__inner {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-4);
     align-items: center;
     justify-content: space-between;
+    max-width: 1120px;
     padding: var(--space-4) var(--space-6);
-    background: var(--color-surface);
-    border-bottom: 4px solid #000;
+    margin: 0 auto;
 }
 
 .app-header__brand {
@@ -51,4 +57,12 @@
     max-width: 1120px;
     padding: var(--space-8) var(--space-6);
     margin: 0 auto;
+}
+
+@media (width <=480px) {
+
+    .app-header__inner,
+    .app-main {
+        padding-inline: var(--space-4);
+    }
 }

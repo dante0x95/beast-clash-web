@@ -3,6 +3,8 @@ import { Container, Graphics, Text, TextStyle, type Ticker } from "pixi.js";
 import { BATTLE_HEIGHT, BATTLE_WIDTH } from "./BattleScene";
 import { tween } from "./tween";
 
+import type { BattleSceneOptions } from "./BattleScene";
+
 const overlayStyle = new TextStyle({
   fill: 0xffffff,
   fontFamily: "Press Start 2P",
@@ -29,7 +31,10 @@ export class BattleOverlay {
   private readonly backdrop: Graphics;
   private readonly text: Text;
 
-  constructor(private readonly ticker: Ticker) {
+  constructor(
+    private readonly ticker: Ticker,
+    private readonly options: BattleSceneOptions,
+  ) {
     this.backdrop = new Graphics()
       .rect(0, 0, BATTLE_WIDTH, BATTLE_HEIGHT)
       .fill(0x000000);
@@ -81,7 +86,11 @@ export class BattleOverlay {
     winner.anchor.set(0.5);
     winner.position.set(BATTLE_WIDTH / 2, BATTLE_HEIGHT / 2 + 8);
     winner.alpha = 0;
-    winner.scale.set(1.4);
+
+    // the "pop" is motion: with reduced motion the name only fades in
+    const winnerStartScale = this.options.reducedMotion ? 1 : 1.4;
+
+    winner.scale.set(winnerStartScale);
 
     this.container.addChild(label, winner);
 
@@ -108,7 +117,7 @@ export class BattleOverlay {
 
         tween(this.ticker, {
           durationMs: 180,
-          from: 1.4,
+          from: winnerStartScale,
           onUpdate: (scale) => {
             winner.scale.set(scale);
           },
@@ -147,8 +156,10 @@ export class BattleOverlay {
   private async showMessage(
     message: string,
     holdMs: number,
-    startScale = 1.6,
+    popScale = 1.6,
   ): Promise<void> {
+    const startScale = this.options.reducedMotion ? 1 : popScale;
+
     this.text.text = message;
     this.text.alpha = 0;
     this.text.scale.set(startScale);
@@ -209,7 +220,9 @@ export class BattleOverlay {
     await tween(this.ticker, {
       durationMs,
       from: 0,
-      onUpdate: () => { /* empty */ },
+      onUpdate: () => {
+        /* empty */
+      },
       to: 1,
     });
   }
