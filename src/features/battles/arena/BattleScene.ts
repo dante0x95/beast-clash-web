@@ -10,10 +10,11 @@ import {
 
 import { BattleHud, type BattleHudTextures } from "./BattleHud";
 import { BattleOverlay } from "./BattleOverlay";
-import { tween } from "./tween";
+import { tween, wait } from "./tween";
 
 import type { Battle, BattleTurn } from "../battle.types";
-import type { ReplayState } from "../replay/replay";
+import type { ReplaySpeed, ReplayState } from "../replay/replay";
+
 export const BATTLE_HEIGHT = 270;
 export const BATTLE_WIDTH = 480;
 
@@ -23,6 +24,11 @@ const PLATFORM_Y = 225;
 const LUNGE_DISTANCE = 52;
 const LUNGE_DURATION_MS = 160;
 const RETURN_DURATION_MS = 190;
+
+const KNOCKOUT_PUSH_X = 22;
+const KNOCKOUT_REST_Y = 6;
+const KNOCKOUT_ROTATION = 0.65;
+const KNOCKOUT_ALPHA = 0.35;
 
 const damageStyle = new TextStyle({
   fill: 0xffd633,
@@ -68,12 +74,44 @@ export class BattleScene {
     this.root.addChild(this.overlay.container);
   }
 
-  update(replay: ReplayState): void {
-    this.hud?.update(replay);
+  /** Scales every tween (turns and overlays) because they all run on this ticker. */
+  setSpeed(speed: ReplaySpeed): void {
+    this.ticker.speed = speed;
   }
 
   async playIntro(): Promise<void> {
     await this.overlay?.playIntro();
+  }
+
+  async wait(durationMs: number): Promise<void> {
+    await wait(this.ticker, durationMs);
+  }
+
+  /** Puts fighters and HUD back to the initial state, without replaying the intro. */
+  reset(replay: ReplayState): void {
+    this.resetFighters();
+    this.hud?.update(replay);
+  }
+
+  /** Jumps to the end of the battle: final HP, loser knocked out, then K.O. and winner overlays. */
+  async showFinalState(replay: ReplayState): Promise<void> {
+    this.resetFighters();
+    this.hud?.update(replay);
+
+    const loser = this.fighters.get(this.battle.loserId);
+
+    if (loser) {
+      const direction = this.knockoutDirection(this.battle.loserId);
+
+      loser.container.position.set(
+        loser.homeX + KNOCKOUT_PUSH_X * direction,
+        PLATFORM_Y + KNOCKOUT_REST_Y,
+      );
+      loser.container.rotation = KNOCKOUT_ROTATION * direction;
+      loser.container.alpha = KNOCKOUT_ALPHA;
+    }
+
+    await this.playResult();
   }
 
   async animateTurn(turn: BattleTurn, nextReplay: ReplayState): Promise<void> {
@@ -142,21 +180,15 @@ export class BattleScene {
       });
 
       if (isKnockout) {
-        const knockoutDirection
-          = turn.defenderId === this.battle.monsterA.id ? -1 : 1;
-
         await Promise.all([
           returnAttacker,
-          this.animateKnockout(defender.container, knockoutDirection),
+          this.animateKnockout(
+            defender.container,
+            this.knockoutDirection(turn.defenderId),
+          ),
         ]);
 
-        await this.overlay?.playKnockout();
-        const winnerName
-          = this.battle.winnerId === this.battle.monsterA.id
-            ? this.battle.monsterA.name
-            : this.battle.monsterB.name;
-
-        await this.overlay?.playWinner(winnerName);
+        await this.playResult();
       } else {
         await returnAttacker;
       }
@@ -168,6 +200,29 @@ export class BattleScene {
       }
 
       this.animating = false;
+    }
+  }
+
+  private async playResult(): Promise<void> {
+    const winnerName
+      = this.battle.winnerId === this.battle.monsterA.id
+        ? this.battle.monsterA.name
+        : this.battle.monsterB.name;
+
+    await this.overlay?.playKnockout();
+    await this.overlay?.playWinner(winnerName);
+  }
+
+  /** The knocked-out fighter falls away from the center of the arena. */
+  private knockoutDirection(fighterId: string): -1 | 1 {
+    return fighterId === this.battle.monsterA.id ? -1 : 1;
+  }
+
+  private resetFighters(): void {
+    for (const { container, homeX } of this.fighters.values()) {
+      container.position.set(homeX, PLATFORM_Y);
+      container.rotation = 0;
+      container.alpha = 1;
     }
   }
 
@@ -205,7 +260,7 @@ export class BattleScene {
         onUpdate: (x) => {
           defender.x = x;
         },
-        to: startX + 22 * direction,
+        to: startX + KNOCKOUT_PUSH_X * direction,
       }),
 
       tween(this.ticker, {
@@ -225,7 +280,7 @@ export class BattleScene {
         onUpdate: (y) => {
           defender.y = y;
         },
-        to: startY + 6,
+        to: startY + KNOCKOUT_REST_Y,
       }),
 
       tween(this.ticker, {
@@ -234,7 +289,7 @@ export class BattleScene {
         onUpdate: (rotation) => {
           defender.rotation = rotation;
         },
-        to: 0.65 * direction,
+        to: KNOCKOUT_ROTATION * direction,
       }),
 
       tween(this.ticker, {
@@ -243,7 +298,7 @@ export class BattleScene {
         onUpdate: (alpha) => {
           defender.alpha = alpha;
         },
-        to: 0.35,
+        to: KNOCKOUT_ALPHA,
       }),
     ]);
   }

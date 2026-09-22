@@ -36,3 +36,14 @@ export function tween(ticker: Ticker, options: TweenOptions): Promise<void> {
     ticker.add(update);
   });
 }
+
+export function wait(ticker: Ticker, durationMs: number): Promise<void> {
+  return tween(ticker, {
+    durationMs,
+    from: 0,
+    onUpdate: () => {
+      /* empty */
+    },
+    to: 1,
+  });
+}

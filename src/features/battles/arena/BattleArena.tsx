@@ -1,13 +1,21 @@
 import { Application } from "pixi.js";
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 
 import { createReplayState, replayReducer } from "../replay/replay";
 import { BATTLE_HEIGHT, BATTLE_WIDTH, BattleScene } from "./BattleScene";
 import { loadMonsterTexture } from "./monster-texture";
+import { ReplayControls } from "./ReplayControls";
 
 import type { Battle } from "../battle.types";
+import type { ReplayEvent, ReplaySpeed, ReplayState } from "../replay/replay";
 
 import "./BattleArena.css";
+
+/** Pause between turns while auto-playing (scaled by the replay speed). */
+const TURN_GAP_MS = 250;
+
+/** Actions that drive the Pixi scene and must never overlap. */
+type SceneAction = "restart" | "skip" | "step";
 
 interface BattleArenaProps {
   readonly battle: Battle;
@@ -27,12 +35,126 @@ export function BattleArena({ battle }: BattleArenaProps) {
     createReplayState,
   );
 
-  const replayRef = useRef(replay);
+  // Latest replay state for async scene actions, updated eagerly by `commit`
+  // so chained actions never read a state React has not rendered yet.
+  const replayRef = useRef<ReplayState>(replay);
+  const busyRef = useRef(false);
+  const pendingActionRef = useRef<SceneAction | null>(null);
 
   useEffect(() => {
     replayRef.current = replay;
-    sceneRef.current?.update(replay);
   }, [replay]);
+
+  useEffect(() => {
+    sceneRef.current?.setSpeed(replay.speed);
+  }, [replay.speed]);
+
+  const commit = useCallback((event: ReplayEvent): ReplayState => {
+    const next = replayReducer(replayRef.current, event);
+
+    replayRef.current = next;
+    dispatch(event);
+
+    return next;
+  }, []);
+
+  const runSceneAction = useCallback(
+    async (scene: BattleScene, action: SceneAction): Promise<void> => {
+      switch (action) {
+        case "restart": {
+          scene.reset(commit({ type: "restart" }));
+
+          return;
+        }
+        case "skip": {
+          if (replayRef.current.status === "finished") {
+            return;
+          }
+
+          await scene.showFinalState(commit({ type: "skip" }));
+
+          return;
+        }
+        case "step": {
+          const current = replayRef.current;
+          const turn = current.turns[current.nextTurnIndex];
+
+          if (!turn || current.status === "finished") {
+            return;
+          }
+
+          // HP always comes from the API (`defenderHpAfter`) through the reducer
+          await scene.animateTurn(
+            turn,
+            replayReducer(current, { type: "step" }),
+          );
+
+          const next = commit({ type: "step" });
+
+          if (next.status === "playing") {
+            await scene.wait(TURN_GAP_MS);
+          }
+        }
+      }
+    },
+    [commit],
+  );
+
+  /**
+   * Runs one scene action at a time. Skip or Restart requested mid-animation
+   * pause the replay and run as soon as the current animation ends.
+   */
+  const performSceneAction = useCallback(
+    async (action: SceneAction): Promise<void> => {
+      const scene = sceneRef.current;
+
+      if (!scene) {
+        return;
+      }
+
+      if (busyRef.current) {
+        if (action !== "step") {
+          pendingActionRef.current = action;
+          commit({ type: "pause" });
+        }
+
+        return;
+      }
+
+      busyRef.current = true;
+      setIsAnimating(true);
+
+      try {
+        let next: SceneAction | null = action;
+
+        while (next) {
+          await runSceneAction(scene, next);
+
+          next = pendingActionRef.current;
+          pendingActionRef.current = null;
+        }
+      } finally {
+        busyRef.current = false;
+        setIsAnimating(false);
+      }
+    },
+    [commit, runSceneAction],
+  );
+
+  // Auto-play: each finished turn re-renders with isAnimating=false and schedules the next one
+  useEffect(() => {
+    if (!isSceneReady || isAnimating || replay.status !== "playing") {
+      return;
+    }
+
+    void performSceneAction("step");
+  }, [
+    isAnimating,
+    isSceneReady,
+    performSceneAction,
+    replay.nextTurnIndex,
+    replay.status,
+  ]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -110,6 +232,7 @@ export function BattleArena({ battle }: BattleArenaProps) {
       );
 
       scene.mount(app.stage);
+      scene.setSpeed(replayRef.current.speed);
       sceneRef.current = scene;
 
       await scene.playIntro();
@@ -146,35 +269,6 @@ export function BattleArena({ battle }: BattleArenaProps) {
     };
   }, [battle]);
 
-  const handleNextTurn = async (): Promise<void> => {
-    if (isAnimating || replay.nextTurnIndex >= replay.turns.length) {
-      return;
-    }
-
-    const scene = sceneRef.current;
-    const turn = replay.turns[replay.nextTurnIndex];
-
-    if (!scene || !turn) {
-      return;
-    }
-
-    const nextReplay = replayReducer(replay, { type: "step" });
-
-    if (nextReplay === replay) {
-      return;
-    }
-
-    setIsAnimating(true);
-
-    try {
-      await scene.animateTurn(turn, nextReplay);
-
-      dispatch({ type: "step" });
-    } finally {
-      setIsAnimating(false);
-    }
-  };
-
   if (renderFailed) {
     return (
       <p className="status-message" role="alert">
@@ -182,8 +276,6 @@ export function BattleArena({ battle }: BattleArenaProps) {
       </p>
     );
   }
-
-  const finished = replay.nextTurnIndex >= replay.turns.length;
 
   return (
     <div
@@ -193,22 +285,31 @@ export function BattleArena({ battle }: BattleArenaProps) {
     >
       <div className="battle-arena__viewport" ref={hostRef} />
 
-      <div className="battle-arena__controls">
-        <button
-          className="button"
-          disabled={isAnimating || finished || !isSceneReady}
-          onClick={() => {
-            void handleNextTurn();
-          }}
-          type="button"
-        >
-          {finished
-            ? "Battle finished"
-            : isAnimating
-              ? "Resolving turn…"
-              : "Next turn"}
-        </button>
-      </div>
+      <ReplayControls
+        canRestart={replay.nextTurnIndex > 0 || replay.status !== "idle"}
+        isAnimating={isAnimating}
+        isReady={isSceneReady}
+        onPause={() => {
+          commit({ type: "pause" });
+        }}
+        onPlay={() => {
+          commit({ type: "play" });
+        }}
+        onRestart={() => {
+          void performSceneAction("restart");
+        }}
+        onSkip={() => {
+          void performSceneAction("skip");
+        }}
+        onSpeedChange={(speed: ReplaySpeed) => {
+          commit({ type: "setSpeed", speed });
+        }}
+        onStep={() => {
+          void performSceneAction("step");
+        }}
+        speed={replay.speed}
+        status={replay.status}
+      />
     </div>
   );
 }

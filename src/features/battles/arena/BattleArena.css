@@ -12,9 +12,3 @@
     image-rendering: pixelated;
     margin-inline: auto;
 }
-
-.battle-arena__controls {
-    display: flex;
-    justify-content: center;
-    margin-top: var(--space-4);
-}

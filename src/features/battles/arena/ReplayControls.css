@@ -1,0 +1,23 @@
+.replay-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    justify-content: center;
+    margin-top: var(--space-4);
+}
+
+.replay-controls__group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    justify-content: center;
+}
+
+.replay-controls__speed[aria-pressed="true"] {
+    color: #000;
+    background: var(--color-accent);
+}
+
+.replay-controls__speed[aria-pressed="true"]:hover:not(:disabled) {
+    background: var(--color-accent-strong);
+}
