@@ -2,10 +2,11 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { ApiError } from "../../api/api-error";
 import { api } from "../../api/client";
+
 import type { paths } from "../../api/schema";
 
-type MonsterPage =
-  paths["/monsters"]["get"]["responses"][200]["content"]["application/json"];
+type MonsterPage
+  = paths["/monsters"]["get"]["responses"][200]["content"]["application/json"];
 
 export type Monster = MonsterPage["items"][number];
 

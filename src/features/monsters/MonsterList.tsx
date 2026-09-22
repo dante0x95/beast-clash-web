@@ -6,7 +6,12 @@ export function MonsterList() {
   if (isPending)
     return <p>Waking up the server… first load can take a few seconds.</p>;
   if (error)
-    return <p role="alert">Could not load monsters: {error.message}</p>;
+    return (
+      <p role="alert">
+        Could not load monsters:
+        {error.message}
+      </p>
+    );
   if (data.items.length === 0) return <p>No monsters yet.</p>;
 
   return (

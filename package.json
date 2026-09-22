@@ -1,7 +1,7 @@
 {
   "name": "beast-clash-web",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "overrides": {
     "openapi-typescript": {
@@ -11,9 +11,16 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
     "preview": "vite preview",
-    "api:types": "openapi-typescript https://beast-clash-api.onrender.com/docs/openapi.json -o src/api/schema.d.ts"
+    "typecheck": "tsc -b",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "api:types": "openapi-typescript https://beast-clash-api.onrender.com/docs/openapi.json -o src/api/schema.d.ts",
+    "prepare": "husky",
+    "release": "commit-and-tag-version"
   },
   "dependencies": {
     "@pixi/react": "^8.0.5",
@@ -24,18 +31,37 @@
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
     "@eslint/js": "^10.0.1",
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
+    "@vitest/coverage-v8": "^5.0.1",
+    "commit-and-tag-version": "^13.2.1",
     "eslint": "^10.10.0",
+    "eslint-plugin-perfectionist": "^5.11.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.6",
+    "eslint-plugin-unicorn": "^76.0.0",
     "globals": "^17.12.0",
+    "husky": "^9.1.7",
+    "jsdom": "^30.1.0",
+    "lint-staged": "^17.5.1",
     "openapi-typescript": "^7.13.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.69.0",
-    "vite": "^8.3.0"
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js}": [
+      "eslint --fix"
+    ]
   }
 }

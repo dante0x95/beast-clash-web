@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 
 import { ApiError } from "./api/api-error";
 import App from "./App";
+
 import "./index.css";
 
 const queryClient = new QueryClient({
@@ -11,9 +12,9 @@ const queryClient = new QueryClient({
     queries: {
       retry: (failureCount, error) =>
         !(
-          error instanceof ApiError &&
-          error.status >= 400 &&
-          error.status < 500
+          error instanceof ApiError
+          && error.status >= 400
+          && error.status < 500
         ) && failureCount < 3,
       staleTime: 30_000,
     },

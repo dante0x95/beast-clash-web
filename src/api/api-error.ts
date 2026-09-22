@@ -11,12 +11,12 @@ function isErrorBody(body: unknown): body is ErrorBody {
     return false;
   const { error } = body;
   return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    typeof error.code === "string" &&
-    "message" in error &&
-    typeof error.message === "string"
+    typeof error === "object"
+    && error !== null
+    && "code" in error
+    && typeof error.code === "string"
+    && "message" in error
+    && typeof error.message === "string"
   );
 }
 
