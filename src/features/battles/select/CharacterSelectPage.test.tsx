@@ -5,14 +5,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../../../api/client";
 import { renderRoute } from "../../../testing/render";
 import { makeMonster } from "../../monsters/monster.fixture";
+import { makeBattle } from "../battle.fixture";
 
 vi.mock("../../../api/client", () => ({
-  api: { GET: vi.fn() },
+  api: { GET: vi.fn(), POST: vi.fn() },
 }));
 
 const getMock = vi.mocked(api.GET);
+const postMock = vi.mocked(api.POST);
 
 type GetResult = Awaited<ReturnType<typeof api.GET>>;
+type PostResult = Awaited<ReturnType<typeof api.POST>>;
 
 const monsters = [
   makeMonster({
@@ -230,4 +233,115 @@ describe("CharacterSelectPage: versus preview", () => {
     expect(p2Matchup).toHaveTextContent("Hits for 35");
     expect(p2Matchup).toHaveTextContent("First strike");
   });
+});
+
+describe("CharacterSelectPage: fight", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockMonsters(monsters);
+  });
+
+  it("enables fight only after both fighters are selected", async () => {
+    const { grid, user } = await renderSelect();
+    const fightButton = screen.getByRole("button", { name: "Fight" });
+
+    expect(fightButton).toBeDisabled();
+
+    await user.click(within(grid).getByRole("button", { name: "Emberclaw" }));
+
+    expect(fightButton).toBeDisabled();
+
+    await user.click(within(grid).getByRole("button", { name: "Voltwing" }));
+
+    expect(fightButton).toBeEnabled();
+    expect(postMock).not.toHaveBeenCalled();
+  });
+
+  it("creates a battle and navigates to its replay", async () => {
+    const battle = makeBattle();
+
+    postMock.mockResolvedValue({
+      data: battle,
+      response: new Response(null, { status: 201 }),
+    });
+
+    const { grid, user } = await renderSelect();
+
+    await user.click(within(grid).getByRole("button", { name: "Emberclaw" }));
+    await user.click(within(grid).getByRole("button", { name: "Voltwing" }));
+
+    await user.click(screen.getByRole("button", { name: "Fight" }));
+
+    expect(postMock).toHaveBeenCalledWith("/battles", {
+      body: {
+        monsterAId: "01900000-0000-7000-8000-000000000001",
+        monsterBId: "01900000-0000-7000-8000-000000000002",
+      },
+    });
+
+    expect(
+      await screen.findByRole("heading", {
+        level: 1,
+        name: "Battle",
+      }),
+    ).toBeInTheDocument();
+
+    expect(screen.getByText(new RegExp(battle.id))).toBeInTheDocument();
+  });
+
+  it("disables fight while the battle is being created", async () => {
+    const pendingResponse = new Promise<PostResult>(() => {
+      // Keep the request pending to verify the loading state.
+    });
+
+    postMock.mockReturnValue(pendingResponse);
+
+    const { grid, user } = await renderSelect();
+
+    await user.click(within(grid).getByRole("button", { name: "Emberclaw" }));
+    await user.click(within(grid).getByRole("button", { name: "Voltwing" }));
+
+    await user.click(screen.getByRole("button", { name: "Fight" }));
+
+    expect(screen.getByRole("button", { name: "Fighting…" })).toBeDisabled();
+
+    expect(postMock).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    [400, "The selected fighters cannot battle each other."],
+    [404, "One of the selected monsters no longer exists."],
+    [429, "Too many requests. Try again in a moment."],
+  ])(
+    "shows the expected message when POST /battles returns %i",
+    async (status, expectedMessage) => {
+      postMock.mockResolvedValue({
+        error: {
+          error: {
+            code: "TEST_ERROR",
+            message: "Request failed",
+          },
+        },
+        response: new Response(null, { status }),
+      } as PostResult);
+
+      const { grid, user } = await renderSelect();
+
+      await user.click(within(grid).getByRole("button", { name: "Emberclaw" }));
+      await user.click(within(grid).getByRole("button", { name: "Voltwing" }));
+
+      await user.click(screen.getByRole("button", { name: "Fight" }));
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        expectedMessage,
+      );
+
+      expect(
+        screen.getByRole("heading", {
+          level: 1,
+          name: "Choose your fighters",
+        }),
+      ).toBeInTheDocument();
+    },
+  );
 });

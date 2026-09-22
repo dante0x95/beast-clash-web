@@ -1,0 +1,9 @@
+.character-select__fight {
+    display: grid;
+    justify-items: center;
+    margin-bottom: var(--space-8);
+}
+
+.character-select__fight .button {
+    min-width: 180px;
+}

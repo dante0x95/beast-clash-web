@@ -1,18 +1,40 @@
 import { useMemo, useReducer } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
+import { ApiError } from "../../../api/api-error";
 import { useMonsters } from "../../monsters/monsters.api";
+import { useCreateBattle } from "../battles.api";
 import { CharacterGrid } from "./CharacterGrid";
-import { initialSelection, selectionReducer } from "./selection";
+import { initialSelection, isComplete, selectionReducer } from "./selection";
 import { VersusPreview } from "./VersusPreview";
 
 import "../../monsters/MonstersPage.css";
+import "./CharacterSelectPage.css";
 
 /** The API's maximum page size; enough for a select screen. */
 const SELECT_PAGE_SIZE = 100;
 
+function battleErrorMessage(error: Error): string {
+  if (!(error instanceof ApiError)) {
+    return error.message;
+  }
+
+  switch (error.status) {
+    case 400:
+      return "The selected fighters cannot battle each other.";
+    case 404:
+      return "One of the selected monsters no longer exists.";
+    case 429:
+      return "Too many requests. Try again in a moment.";
+    default:
+      return error.message;
+  }
+}
+
 export function CharacterSelectPage() {
+  const navigate = useNavigate();
   const { data, error, isPending } = useMonsters(1, SELECT_PAGE_SIZE);
+  const createBattle = useCreateBattle();
   const [selection, dispatch] = useReducer(selectionReducer, initialSelection);
 
   const monstersById = useMemo(
@@ -62,10 +84,28 @@ export function CharacterSelectPage() {
       </section>
     );
   }
+  const handleFight = (): void => {
+    if (!isComplete(selection)) {
+      return;
+    }
+
+    createBattle.mutate(
+      {
+        monsterAId: selection.p1,
+        monsterBId: selection.p2,
+      },
+      {
+        onSuccess: (battle) => {
+          void navigate(`/battles/${battle.id}`);
+        },
+      },
+    );
+  };
 
   return (
     <section>
       {header}
+
       <VersusPreview
         active={selection.active}
         onClear={(slot) => {
@@ -77,6 +117,24 @@ export function CharacterSelectPage() {
         p1={selection.p1 ? (monstersById.get(selection.p1) ?? null) : null}
         p2={selection.p2 ? (monstersById.get(selection.p2) ?? null) : null}
       />
+
+      <div className="character-select__fight">
+        <button
+          className="button"
+          disabled={!isComplete(selection) || createBattle.isPending}
+          onClick={handleFight}
+          type="button"
+        >
+          {createBattle.isPending ? "Fighting…" : "Fight"}
+        </button>
+
+        {createBattle.error && (
+          <p className="status-message" role="alert">
+            {battleErrorMessage(createBattle.error)}
+          </p>
+        )}
+      </div>
+
       <CharacterGrid
         monsters={data.items}
         onPick={(monsterId) => {
@@ -84,6 +142,7 @@ export function CharacterSelectPage() {
         }}
         selection={selection}
       />
+
       {data.total > data.items.length && (
         <p className="status-message">{`Showing the first ${String(data.items.length)} of ${String(data.total)} monsters.`}</p>
       )}
